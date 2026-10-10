@@ -15,6 +15,8 @@ with a Bearer token and displays the returned prepaid credit balance.
 
 1. **API token**, resolved in this order:
    - `MAKORA_API_TOKEN`, `MAKORA_TOKEN`, or `MAKORA_API_KEY` from the process environment.
+     An environment token always wins, so a rotated credential can override a stale saved
+     setting for a single run.
    - Settings → Providers → Makora, stored in `~/.codexbar/config.json`.
    - `~/.makora/user`, the credential file written by the `makora login` CLI. Override
      the path with `MAKORA_USER_FILE`.
@@ -34,9 +36,11 @@ with a Bearer token and displays the returned prepaid credit balance.
   balance (`100%` used) and the exact amount lives in the detail line.
 - `currency` is normally `Credits`, where 1 credit = $1. Both values are shown verbatim
   (for example `42.50 Credits`); when the field is absent the balance renders as dollars.
-- Balances are floored to cents so sub-cent reconcilation noise never overstates credits.
+- Balances are rounded down to whole cents with decimal arithmetic, so sub-cent
+  reconciliation noise never overstates credits and ordinary two-decimal amounts render
+  exactly (`2.30 Credits`, not `2.29 Credits`).
 - There is no reset window: Makora credits do not expire on a schedule, so the row has no
-  countdown.
+  countdown and the amount is never labelled as a reset.
 
 ## Endpoint notes
 
