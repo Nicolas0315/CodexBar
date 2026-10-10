@@ -1039,6 +1039,7 @@ extension UsageStore {
                 .t3chat: "T3 Chat debug log not yet implemented",
                 .llmproxy: "LLM Proxy debug log not yet implemented",
                 .deepgram: "Deepgram debug log not yet implemented",
+                .makora: "Makora debug log not yet implemented",
             ]
             let buildText = {
                 switch provider {
@@ -1116,7 +1117,7 @@ extension UsageStore {
                 case .gemini, .antigravity, .opencode, .opencodego, .alibabatokenplan, .factory, .copilot,
                      .vertexai, .kilo, .kiro, .kimi, .kimik2, .moonshot, .jetbrains, .perplexity, .mimo, .doubao,
                      .abacus, .mistral, .codebuff, .crof, .windsurf, .venice, .manus, .commandcode, .stepfun, .bedrock,
-                     .grok, .groq, .t3chat, .llmproxy, .deepgram:
+                     .grok, .groq, .t3chat, .llmproxy, .deepgram, .makora:
                     return unimplementedDebugLogMessages[provider] ?? "Debug log not yet implemented"
                 }
             }

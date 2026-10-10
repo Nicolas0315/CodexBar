@@ -139,6 +139,12 @@ public enum ProviderTokenResolver {
         self.doubaoResolution(environment: environment)?.token
     }
 
+    public static func makoraToken(
+        environment: [String: String] = ProcessInfo.processInfo.environment) -> String?
+    {
+        self.makoraResolution(environment: environment)?.token
+    }
+
     public static func bedrockAccessKeyID(
         environment: [String: String] = ProcessInfo.processInfo.environment) -> String?
     {
@@ -161,6 +167,12 @@ public enum ProviderTokenResolver {
         environment: [String: String] = ProcessInfo.processInfo.environment) -> ProviderTokenResolution?
     {
         self.resolveEnv(CrofSettingsReader.apiKey(environment: environment))
+    }
+
+    public static func makoraResolution(
+        environment: [String: String] = ProcessInfo.processInfo.environment) -> ProviderTokenResolution?
+    {
+        self.resolveEnv(MakoraSettingsReader.apiToken(environment: environment))
     }
 
     public static func veniceResolution(

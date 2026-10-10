@@ -450,7 +450,7 @@ enum CostUsageScanner {
              .copilot, .minimax, .manus, .kilo, .kiro, .kimi, .kimik2, .moonshot, .augment, .jetbrains, .amp, .ollama,
              .t3chat, .synthetic, .openrouter, .elevenlabs, .warp, .perplexity, .mimo, .doubao, .abacus, .mistral,
              .deepseek, .codebuff, .crof, .windsurf, .venice, .commandcode, .stepfun, .bedrock, .grok, .groq,
-             .llmproxy, .deepgram:
+             .llmproxy, .deepgram, .makora:
             return emptyReport
         }
     }

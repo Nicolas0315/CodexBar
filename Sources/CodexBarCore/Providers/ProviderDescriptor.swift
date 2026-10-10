@@ -101,6 +101,7 @@ public enum ProviderDescriptorRegistry {
         .groq: GroqProviderDescriptor.descriptor,
         .llmproxy: LLMProxyProviderDescriptor.descriptor,
         .deepgram: DeepgramProviderDescriptor.descriptor,
+        .makora: MakoraProviderDescriptor.descriptor,
     ]
     private static let bootstrap: Void = {
         for provider in UsageProvider.allCases {

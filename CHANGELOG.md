@@ -2,6 +2,11 @@
 
 ## 0.32.5 — Unreleased
 
+### Added
+- Makora: show the prepaid credit balance from the Makora account API. Configure the
+  token in Settings → Providers → Makora, via `MAKORA_API_TOKEN`, or reuse the
+  `~/.makora/user` file written by `makora login`.
+
 ## 0.32.4 — 2026-06-02
 
 ### Fixed

@@ -102,6 +102,7 @@ enum ProviderChoice: String, AppEnum {
         case .groq: return nil // Groq not yet supported in widgets
         case .llmproxy: return nil // LLM Proxy not yet supported in widgets
         case .deepgram: return nil // Deepgram not yet supported in widgets
+        case .makora: return nil // Makora not yet supported in widgets
         }
     }
 }
