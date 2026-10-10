@@ -266,7 +266,7 @@ enum CLIRenderer {
         lines: inout [String])
     {
         if provider == .warp || provider == .kilo || provider == .mistral || provider == .deepseek ||
-            provider == .crof
+            provider == .crof || provider == .makora
         {
             if let reset = self.resetLineForDetailBackedWindow(window: window, style: context.resetStyle, now: now) {
                 lines.append(self.subtleLine(reset, useColor: context.useColor))

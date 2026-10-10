@@ -18,7 +18,7 @@ struct MakoraUsageFetcherTests {
 
         let status = try MakoraUsageFetcher._parseCreditsStatusForTesting(Data(json.utf8))
 
-        #expect(status.balance == 42.5)
+        #expect(status.balance == Decimal(string: "42.5"))
         #expect(status.currency == "Credits")
         #expect(status.hasPaymentMethod)
         #expect(!status.hasDefaultPaymentMethod)
@@ -28,7 +28,7 @@ struct MakoraUsageFetcherTests {
     func `credits status tolerates omitted optional fields`() throws {
         let status = try MakoraUsageFetcher._parseCreditsStatusForTesting(Data(#"{"balance":7}"#.utf8))
 
-        #expect(status.balance == 7)
+        #expect(status.balance == Decimal(7))
         #expect(status.currency == nil)
         #expect(!status.hasPaymentMethod)
         #expect(!status.hasDefaultPaymentMethod)
@@ -42,9 +42,10 @@ struct MakoraUsageFetcherTests {
     }
 
     @Test
-    func `usage snapshot maps balance to remaining credit window`() {
+    func `usage snapshot maps balance to remaining credit window`() throws {
+        let balance = try #require(Decimal(string: "42.5"))
         let snapshot = MakoraUsageSnapshot(
-            status: MakoraCreditsStatus(balance: 42.5, currency: "Credits"),
+            status: MakoraCreditsStatus(balance: balance, currency: "Credits"),
             accountEmail: "user@example.com",
             updatedAt: Date(timeIntervalSince1970: 1_777_800_000))
 
@@ -61,7 +62,7 @@ struct MakoraUsageFetcherTests {
 
     @Test
     func `usage snapshot marks exhausted balance as fully used`() {
-        let snapshot = MakoraUsageSnapshot(status: MakoraCreditsStatus(balance: 0))
+        let snapshot = MakoraUsageSnapshot(status: MakoraCreditsStatus(balance: Decimal(0)))
 
         #expect(snapshot.toUsageSnapshot().primary?.usedPercent == 100)
     }
@@ -75,6 +76,62 @@ struct MakoraUsageFetcherTests {
     }
 
     @Test
+    func `balance formatting never underreports two-decimal amounts`() throws {
+        let twoThirty = try #require(Decimal(string: "2.30"))
+        let oneFifteen = try #require(Decimal(string: "1.15"))
+        let eightTwenty = try #require(Decimal(string: "8.20"))
+        let twentyNine = try #require(Decimal(string: "0.29"))
+
+        // Binary Double flooring turned these into 2.29 / 1.14 / 8.19.
+        #expect(MakoraUsageSnapshot.formatBalance(twoThirty, currency: "Credits") == "2.30 Credits")
+        #expect(MakoraUsageSnapshot.formatBalance(oneFifteen, currency: "Credits") == "1.15 Credits")
+        #expect(MakoraUsageSnapshot.formatBalance(eightTwenty, currency: nil) == "$8.20")
+        #expect(MakoraUsageSnapshot.formatBalance(twentyNine, currency: nil) == "$0.29")
+    }
+
+    @Test
+    func `balance formatting still discards true sub-cent value`() throws {
+        let tiny = try #require(Decimal(string: "0.004"))
+        let large = try #require(Decimal(string: "1234.56"))
+
+        let subCent = try #require(Decimal(string: "9.999"))
+        #expect(MakoraUsageSnapshot.formatBalance(subCent, currency: "Credits") == "9.99 Credits")
+        #expect(MakoraUsageSnapshot.formatBalance(tiny, currency: nil) == "$0.00")
+        #expect(MakoraUsageSnapshot.formatBalance(large, currency: nil) == "$1234.56")
+    }
+
+    @Test
+    func `credits status requires a balance field`() {
+        // A successful-but-incomplete payload must not render as a real $0.00 balance.
+        #expect(throws: MakoraUsageError.self) {
+            try MakoraUsageFetcher._parseCreditsStatusForTesting(Data(#"{"currency":"Credits"}"#.utf8))
+        }
+    }
+
+    @Test
+    func `only the known not-found payload maps to unknown account`() {
+        #expect(MakoraUsageFetcher.isUnknownAccountPayload(Data(#"{"detail":"User not found"}"#.utf8)))
+        #expect(MakoraUsageFetcher.isUnknownAccountPayload(Data(#"{"detail":"USER NOT FOUND"}"#.utf8)))
+        #expect(!MakoraUsageFetcher.isUnknownAccountPayload(Data(#"{"detail":"Not Found"}"#.utf8)))
+        #expect(!MakoraUsageFetcher.isUnknownAccountPayload(Data("<!doctype html>".utf8)))
+    }
+
+    @Test
+    func `a route-level 404 is reported as a generic API error`() async {
+        let transport = ProviderHTTPTransportStub { request in
+            (Data(#"{"detail":"Not Found"}"#.utf8), HTTPURLResponse(
+                url: request.url!,
+                statusCode: 404,
+                httpVersion: "HTTP/1.1",
+                headerFields: nil)!)
+        }
+
+        await #expect(throws: MakoraUsageError.apiError(404)) {
+            try await MakoraUsageFetcher.fetchUsage(apiToken: "token", session: transport)
+        }
+    }
+
+    @Test
     func `fetch sends bearer token to the credits endpoint`() async throws {
         let transport = ProviderHTTPTransportStub { request in
             let body = request.url?.path.contains("credits/status") == true
@@ -85,7 +142,7 @@ struct MakoraUsageFetcherTests {
 
         let snapshot = try await MakoraUsageFetcher.fetchUsage(apiToken: "  token-abc  ", session: transport)
 
-        #expect(snapshot.status.balance == 3.5)
+        #expect(snapshot.status.balance == Decimal(string: "3.5"))
         #expect(snapshot.accountEmail == "user@example.com")
         let requests = await transport.requests()
         // Balance is required; account identity is a best-effort follow-up.
@@ -110,7 +167,7 @@ struct MakoraUsageFetcherTests {
 
         let snapshot = try await MakoraUsageFetcher.fetchUsage(apiToken: "token", session: transport)
 
-        #expect(snapshot.status.balance == 8)
+        #expect(snapshot.status.balance == Decimal(8))
         #expect(snapshot.accountEmail == nil)
     }
 

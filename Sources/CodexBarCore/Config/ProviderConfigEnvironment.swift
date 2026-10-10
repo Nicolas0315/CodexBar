@@ -21,6 +21,9 @@ public enum ProviderConfigEnvironment {
         if provider == .azureopenai {
             return self.applyAzureOpenAIOverrides(base: base, config: config)
         }
+        if provider == .makora {
+            return self.applyMakoraOverrides(base: base, config: config)
+        }
         guard let apiKey = config?.sanitizedAPIKey, !apiKey.isEmpty else { return base }
         var env = base
         if let key = self.directAPIKeyEnvironmentKey(for: provider) {
@@ -62,10 +65,28 @@ public enum ProviderConfigEnvironment {
         return env
     }
 
+    /// Projects the saved Makora token into the environment, preserving an environment token
+    /// that is already present so a one-off override (for example a freshly rotated token)
+    /// wins over the saved setting.
+    private static func applyMakoraOverrides(
+        base: [String: String],
+        config: ProviderConfig?) -> [String: String]
+    {
+        guard let apiKey = config?.sanitizedAPIKey, !apiKey.isEmpty else { return base }
+        guard MakoraSettingsReader.apiToken(environment: base) == nil,
+              let key = MakoraSettingsReader.apiTokenEnvironmentKeys.first
+        else {
+            return base
+        }
+        var env = base
+        env[key] = apiKey
+        return env
+    }
+
     public static func supportsAPIKeyOverride(for provider: UsageProvider) -> Bool {
         if self.directAPIKeyEnvironmentKey(for: provider) != nil { return true }
         switch provider {
-        case .copilot, .kimik2, .warp, .codebuff, .crof, .doubao:
+        case .copilot, .kimik2, .warp, .codebuff, .crof, .doubao, .makora:
             return true
         case .azureopenai:
             return true
@@ -108,8 +129,6 @@ public enum ProviderConfigEnvironment {
             GroqSettingsReader.apiKeyEnvironmentKey
         case .llmproxy:
             LLMProxySettingsReader.apiKeyEnvironmentKey
-        case .makora:
-            MakoraSettingsReader.apiTokenEnvironmentKeys.first
         default:
             nil
         }

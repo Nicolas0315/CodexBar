@@ -115,10 +115,22 @@ public enum MakoraUsageFetcher {
         case 401, 403:
             throw MakoraUsageError.unauthorized
         case 404:
-            // Makora answers an unknown bearer token with "User not found" instead of 401.
-            throw MakoraUsageError.unknownAccount
+            // Makora answers a token whose account it cannot resolve with
+            // `404 {"detail":"User not found"}` instead of 401. A route-level 404 means
+            // something else is wrong, so only the known payload is reclassified.
+            throw Self.isUnknownAccountPayload(response.0)
+                ? MakoraUsageError.unknownAccount
+                : MakoraUsageError.apiError(httpResponse.statusCode)
         default:
             throw MakoraUsageError.apiError(httpResponse.statusCode)
         }
+    }
+
+    static func isUnknownAccountPayload(_ data: Data) -> Bool {
+        struct ErrorDetail: Decodable {
+            let detail: String?
+        }
+        guard let decoded = try? JSONDecoder().decode(ErrorDetail.self, from: data) else { return false }
+        return decoded.detail?.lowercased().contains("user not found") == true
     }
 }
