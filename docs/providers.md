@@ -69,6 +69,7 @@ headers, source selection, provider ordering, and token accounts are stored in `
 | GroqCloud | API key → Prometheus metrics API for request/token/cache-hit rates (`api`). |
 | LLM Proxy | API key + base URL → `/v1/quota-stats` aggregate proxy usage (`api`). |
 | Deepgram | API key → project discovery and usage breakdown API (`api`). |
+| Makora | Account API token → prepaid credit balance API (`api`). |
 
 ## Codex
 - App Auto: OAuth API first; falls back to CLI only when OAuth credentials are missing or auth/refresh is invalid.
@@ -370,6 +371,13 @@ headers, source selection, provider ordering, and token accounts are stored in `
 - Optional project ID from provider settings or `DEEPGRAM_PROJECT_ID`; otherwise aggregates all visible projects.
 - Reads Deepgram usage breakdowns for audio hours, agent hours, token totals, TTS characters, and requests.
 - Details: `docs/deepgram.md`.
+
+## Makora
+- API token from config, `MAKORA_API_TOKEN`, or the `~/.makora/user` file written by `makora login`.
+- Reads the prepaid credit balance from `GET https://app.makora.com/api/v1/credits/status`.
+- Shows the balance (usually `Credits`, 1 credit = $1) with no reset window, since credits do not expire on a schedule.
+- Status: Statuspage.io (Makora).
+- Details: `docs/makora.md`.
 
 ## StepFun
 - Username/password login or manual Oasis-Token.

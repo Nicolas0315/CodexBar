@@ -51,6 +51,30 @@ struct ProviderConfigEnvironmentTests {
         #expect(ProviderTokenResolver.doubaoToken(environment: env) == "db-token")
     }
 
+    @Test
+    func `applies API key override for makora`() {
+        let config = ProviderConfig(id: .makora, apiKey: "mk-token")
+        let env = ProviderConfigEnvironment.applyAPIKeyOverride(
+            base: [:],
+            provider: .makora,
+            config: config)
+
+        #expect(env[MakoraSettingsReader.apiTokenEnvironmentKeys[0]] == "mk-token")
+        #expect(ProviderTokenResolver.makoraToken(environment: env) == "mk-token")
+        #expect(ProviderConfigEnvironment.supportsAPIKeyOverride(for: .makora))
+    }
+
+    @Test
+    func `makora environment token wins over the saved setting`() {
+        let config = ProviderConfig(id: .makora, apiKey: "saved-token")
+        let env = ProviderConfigEnvironment.applyAPIKeyOverride(
+            base: ["MAKORA_API_TOKEN": "env-token"],
+            provider: .makora,
+            config: config)
+
+        #expect(ProviderTokenResolver.makoraToken(environment: env) == "env-token")
+    }
+
     func `applies API key override for moonshot`() {
         let config = ProviderConfig(id: .moonshot, apiKey: "moon-token")
         let env = ProviderConfigEnvironment.applyAPIKeyOverride(

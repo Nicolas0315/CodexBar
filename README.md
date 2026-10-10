@@ -118,6 +118,7 @@ See [CLI configuration](docs/cli-configuration.md) for the full flow.
 - [GroqCloud](docs/groqcloud.md) — API key for Enterprise Prometheus request/token/cache-hit metrics.
 - [LLM Proxy](docs/llm-proxy.md) — API key + base URL for aggregate proxy quota stats and provider breakdowns.
 - [Deepgram](docs/deepgram.md) — API key usage summaries across speech, agent, token, and TTS metrics.
+- [Makora](docs/makora.md) — Account API token for prepaid credit balance tracking.
 - Open to new providers: [provider authoring guide](docs/provider.md).
 
 ## Icon & Screenshot
